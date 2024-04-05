@@ -30,8 +30,9 @@ def create_app(test_config=None):
     with app.app_context():
         db.create_all()
 
-    from .blueprints import main, media
+    from .blueprints import main, media, auth
     app.register_blueprint(main.bp)
     app.register_blueprint(media.bp)
+    app.register_blueprint(auth.bp)
 
     return app

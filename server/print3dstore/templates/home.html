@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="root">
+  <div class="card">
+    <h1>Welcome to your 3d print store manager</h1>
+    <form action="{{ url_for('main.upload') }}" method="post" enctype="multipart/form-data">
+      <div class="form-field">
+        {{ form.stl_models.label }} {{ form.stl_models }}
+      </div>
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

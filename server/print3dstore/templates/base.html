@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  <title>{% block title %}3D Print Store{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css')}}">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico')}}" type="image/x-icon">
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li>
+          <a href="{{ url_for('main.root')}}">Home</a>
+        </li>
+        {% if g.user is not none %}
+          <li>
+            <a href="{{ url_for('auth.login') }}">Log in</a>
+          </li>
+          <li>
+            <a href="{{ url_for('auth.register') }}">Register</a>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </header>
+  {% block content %}
+    
+  {% endblock %}
+</body>
+</html>

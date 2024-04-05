@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% set action_endpoint = "auth." + action %}
+
+{% block title %}
+  {{ action|capitalize }} - {{ super() }}
+{% endblock %}
+
+{% block content %}
+  {{ action|capitalize }}
+  {% for message in get_flashed_messages() %}<div class="flash">{{ message }}</div>{% endfor %}
+  <form action="{{ url_for(action_endpoint) }}" method="post">
+    <div>{{ form.username.label }}: {{ form.username }}</div>
+    <div>{{ form.password.label }}: {{ form.password }}</div>
+    <button type="submit">{{ action|capitalize }}</button>
+  </form>
+{% endblock %}
