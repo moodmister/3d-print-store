@@ -6,6 +6,8 @@ Date: 2024-03-29
 import os
 from dotenv import dotenv_values
 from flask import Flask
+
+from print3dstore.cli import load_fixtures_command
 from .models import db
 
 def create_app(test_config=None):
@@ -34,5 +36,7 @@ def create_app(test_config=None):
     app.register_blueprint(main.bp)
     app.register_blueprint(media.bp)
     app.register_blueprint(auth.bp)
+
+    app.cli.add_command(load_fixtures_command)
 
     return app

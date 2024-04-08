@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Error - {{ super() }}
+{% endblock %}
+
+{% block content %}
+  <h1>Error {{ error.http_code }}</h1>
+  <p>{{ error }}</p>
+{% endblock %}

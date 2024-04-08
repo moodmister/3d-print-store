@@ -1,34 +1,55 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="">
   <meta name="keywords" content="">
   <title>{% block title %}3D Print Store{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css')}}">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css')}}">
   <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico')}}" type="image/x-icon">
 </head>
 <body>
   <header>
-    <nav>
-      <ul>
-        <li>
-          <a href="{{ url_for('main.root')}}">Home</a>
-        </li>
-        {% if g.user is not none %}
-          <li>
-            <a href="{{ url_for('auth.login') }}">Log in</a>
-          </li>
-          <li>
-            <a href="{{ url_for('auth.register') }}">Register</a>
-          </li>
-        {% endif %}
-      </ul>
+    <nav class="navbar navbar-expand-lg bg-primary" data-bs-theme="dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('main.root') }}">3d print store</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarColor01">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link {% if url_for('main.root') == url_for(request.endpoint) %}active{% endif %}"
+              href="{{ url_for('main.root')}}">
+              Home
+              </a>
+            </li>
+            {% if g.user is none %}
+            <li class="nav-item">
+              <a class="nav-link {% if url_for('auth.login') == url_for(request.endpoint) %}active{% endif %}"
+                href="{{ url_for('auth.login') }}">
+                Log in
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {% if url_for('auth.register') == url_for(request.endpoint) %}active{% endif %}"
+                href="{{ url_for('auth.register') }}">
+                Register
+              </a>
+            </li>
+          {% endif %}
+          </ul>
+        </div>
+      </div>
     </nav>
   </header>
-  {% block content %}
+  <main class="container d-flex flex-column align-items-center">
+    {% block content %}
     
-  {% endblock %}
+    {% endblock %}
+  </main>
+  <script src="{{ url_for('static', filename='bootstrap.min.js') }}"></script>
 </body>
 </html>

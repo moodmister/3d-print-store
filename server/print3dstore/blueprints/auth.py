@@ -3,11 +3,13 @@ from flask import Blueprint, flash, g, redirect, render_template, request, sessi
 from werkzeug.security import check_password_hash, generate_password_hash
 from print3dstore.errors import RequestException
 from print3dstore.models import Role, User, db
+from print3dstore.wrapper_functions import error_handler
 from .forms.auth import AuthForm
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 @bp.route("/register", methods=["GET", "POST"])
+@error_handler
 def register():
     form = AuthForm(request.form)
 
@@ -37,6 +39,7 @@ def register():
 
 
 @bp.route("/login", methods=("GET", "POST"))
+@error_handler
 def login():
     form = AuthForm(request.form)
     if request.method == "POST" and form.validate():
@@ -86,6 +89,7 @@ def login_required(view):
 
 
 @bp.route("/logout")
+@error_handler
 def logout():
     session.clear()
     g.user = None
