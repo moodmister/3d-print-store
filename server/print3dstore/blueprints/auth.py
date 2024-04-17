@@ -14,11 +14,11 @@ def register():
     form = AuthForm(request.form)
 
     if request.method == "POST" and form.validate():
-        username = request.form["username"]
+        email = request.form["email"]
         password = request.form["password"]
         error = ""
 
-        if username == "":
+        if email == "":
             error += "Username is required. "
         if password == "":
             error += "Password is required. "
@@ -26,7 +26,7 @@ def register():
         if error == "":
             user_role = Role.query.filter_by(name="user").first()
             new_user = User(
-                username=username,
+                email=email,
                 password=generate_password_hash(password),
                 role_id=user_role.id,
             )
@@ -43,22 +43,12 @@ def register():
 def login():
     form = AuthForm(request.form)
     if request.method == "POST" and form.validate():
-        user = User.query.filter_by(username=request.form["username"]).first()
+        user = User.query.filter_by(email=request.form["email"]).first()
         if user is None:
-            message = "User not found"
-            code = 404
-            return make_response(
-                render_template("error.html", message=message, code=code), code
-            )
+            raise RequestException("User with that email is not found", 400)
         if not check_password_hash(user.password, request.form["password"]):
-            message = "Invalid password"
-            code = 403
-            return make_response(
-                render_template("error.html", message=message, code=code), code
-            )
-        print("==============================")
-        print(user.role_id)
-        print("==============================")
+            raise RequestException("Incorrect password", 400)
+
         session["user_id"] = user.id
         session["role_id"] = user.role_id
 
@@ -74,7 +64,7 @@ def load_logged_in_user():
         g.user = None
     else:
         g.user = User.query.filter_by(id=user_id).first()
-        g.role = Role.query.filter_by(id=g.user.role_id).first()
+        g.roles = g.user.roles
 
 
 def login_required(view):

@@ -8,7 +8,7 @@
   <div class="container p-5">
     <h1>{{ action|capitalize }}</h1>
     <form class="form" action="{{ url_for(action_endpoint) }}" method="post">
-      {{ form.username.label }}: {{ form.username(class='form-control') }}
+      {{ form.email.label }}: {{ form.email(class='form-control') }}
       {{ form.password.label }}: {{ form.password(class='form-control') }}
       <div class="text-center">
         <button class="btn w-75 btn-primary mt-5" type="submit">

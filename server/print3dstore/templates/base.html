@@ -26,20 +26,41 @@
               Home
               </a>
             </li>
+            {% if g.user is not none %}
+              <li class="nav-item">
+                <a class="nav-link {% if url_for('auth.login') == url_for(request.endpoint) %}active{% endif %}"
+                  href="{{ url_for('order.order') }}">
+                  Order
+                </a>
+              </li>
+            {% endif %}
             {% if g.user is none %}
-            <li class="nav-item">
-              <a class="nav-link {% if url_for('auth.login') == url_for(request.endpoint) %}active{% endif %}"
-                href="{{ url_for('auth.login') }}">
-                Log in
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link {% if url_for('auth.register') == url_for(request.endpoint) %}active{% endif %}"
-                href="{{ url_for('auth.register') }}">
-                Register
-              </a>
-            </li>
-          {% endif %}
+              <li class="nav-item">
+                <a class="nav-link {% if url_for('auth.login') == url_for(request.endpoint) %}active{% endif %}"
+                  href="{{ url_for('auth.login') }}">
+                  Log in
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if url_for('auth.register') == url_for(request.endpoint) %}active{% endif %}"
+                  href="{{ url_for('auth.register') }}">
+                  Register
+                </a>
+              </li>
+            {% else %}
+              <li class="nav-item">
+                <a class="nav-link {% if url_for('auth.login') == url_for(request.endpoint) %}active{% endif %}"
+                  href="{{ url_for('profile.info') }}">
+                  Profile
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link {% if url_for('auth.register') == url_for(request.endpoint) %}active{% endif %}"
+                  href="{{ url_for('auth.logout') }}">
+                  Log out
+                </a>
+              </li>
+            {% endif %}
           </ul>
         </div>
       </div>

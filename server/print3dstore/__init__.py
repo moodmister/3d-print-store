@@ -32,10 +32,12 @@ def create_app(test_config=None):
     with app.app_context():
         db.create_all()
 
-    from .blueprints import main, media, auth
+    from .blueprints import main, media, auth, profile, order
     app.register_blueprint(main.bp)
     app.register_blueprint(media.bp)
     app.register_blueprint(auth.bp)
+    app.register_blueprint(profile.bp)
+    app.register_blueprint(order.bp)
 
     app.cli.add_command(load_fixtures_command)
 
