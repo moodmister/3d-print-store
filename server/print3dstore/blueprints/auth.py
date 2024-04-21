@@ -50,9 +50,12 @@ def login():
             raise RequestException("Incorrect password", 400)
 
         session["user_id"] = user.id
-        session["role_id"] = user.role_id
 
-        return redirect(url_for("index"))
+        redirect_to_url = url_for("main.root")
+        if session["redirected_from_url"] is not None:
+            redirect_to_url = session["redirected_from_url"]
+
+        return redirect(redirect_to_url)
 
     return render_template("auth/user_form.html", form=form, action="login")
 
@@ -71,6 +74,7 @@ def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.user is None:
+            session["redirected_from_url"] = request.url
             return redirect(url_for("auth.login"))
 
         return view(**kwargs)

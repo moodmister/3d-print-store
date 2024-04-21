@@ -5,6 +5,14 @@ from sqlalchemy.orm import mapped_column, Mapped, relationship, DeclarativeBase,
 
 db = SQLAlchemy()
 
+class Printer(db.Model):
+    __tablename__ = "printer"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str]
+    config_file: Mapped[str|None]
+
+
 class Material(db.Model):
     __tablename__ = "material"
 
@@ -29,8 +37,7 @@ class File(db.Model):
     __tablename__ = "file"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    stl_model_id: Mapped[int] = mapped_column(ForeignKey("stl_model.id"))
-    stl_model: Mapped["StlModel"] = relationship(back_populates="file", foreign_keys=stl_model_id)
+    stl_model: Mapped["StlModel"] = relationship(back_populates="file")
     full_path: Mapped[str]
 
 
@@ -45,12 +52,9 @@ class Order(db.Model):
         back_populates="order", cascade="all, delete-orphan"
     )
 
-    estimated_cost: Mapped[int]
-    real_cost: Mapped[int]
-    shipping: Mapped[int]
-
-    delivery_address_id: Mapped[int] = mapped_column(ForeignKey("address.id"))
-    delivery_address: Mapped["Address"] = relationship(foreign_keys=delivery_address_id)
+    estimated_cost: Mapped[int|None]
+    real_cost: Mapped[int|None]
+    shipping_cost: Mapped[int|None]
 
     payment_gateway_id: Mapped[int] = mapped_column(ForeignKey("payment_gateway.id"))
     payment_gateway: Mapped["PaymentGateway"] = relationship(foreign_keys=payment_gateway_id)
@@ -64,12 +68,13 @@ class StlModel(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    file: Mapped["File"] = relationship(back_populates="stl_model")
+    file_id: Mapped[int] = mapped_column(ForeignKey("file.id"))
+    file: Mapped["File"] = relationship(foreign_keys=file_id, back_populates="stl_model")
     order_id: Mapped[int] = mapped_column(ForeignKey("order.id"))
     order: Mapped["Order"] = relationship(back_populates="stl_models", foreign_keys=order_id)
 
-    estimated_time: Mapped[int]
-    estimated_cost: Mapped[int]
+    estimated_time: Mapped[int|None]
+    estimated_cost: Mapped[int|None]
 
     def __repr__(self) -> str:
         return f"StlModel(id{self.id})"
@@ -82,20 +87,6 @@ class PaymentGateway(db.Model):
     name: Mapped[str]
     type: Mapped[str]
 
-
-class Address(db.Model):
-    __tablename__ = "address"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    city: Mapped[str]
-    postal_code: Mapped[str]
-    address_line1: Mapped[str]
-    address_line2: Mapped[str] = mapped_column(nullable=False)
-
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    user: Mapped["User"] = relationship(foreign_keys=user_id)
-
-
 class User(db.Model):
     __tablename__ = "user"
 
@@ -107,7 +98,10 @@ class User(db.Model):
     orders: Mapped[Optional[List["Order"]]] = relationship(back_populates="user")
     roles: Mapped[List["Role"]] = relationship("UserRole", back_populates="user")
 
-    addresses: Mapped[List["Address"]|None] = relationship(back_populates="user")
+    city: Mapped[str|None]
+    postal_code: Mapped[str|None]
+    address_line1: Mapped[str|None]
+    address_line2: Mapped[str|None]
 
     def has_permission(self, permission):
         for user_role in self.roles:
