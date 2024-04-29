@@ -48,6 +48,11 @@
                 </a>
               </li>
             {% else %}
+              {% if g.user.has_permission("superuser") %}
+                <li class="nav-item">
+                  <a href="{{ url_for('admin.index') }}" class="nav-link">Admin panel</a>
+                </li>
+              {% endif %}
               <li class="nav-item">
                 <a class="nav-link {% if url_for('auth.login') == url_for(request.endpoint) %}active{% endif %}"
                   href="{{ url_for('profile.info') }}">

@@ -4,7 +4,7 @@ from print3dstore.models import Material
 
 from print3dstore.blueprints.forms.base import CsrfBaseForm
 
-class UploadForm(CsrfBaseForm):
+class OrderForm(CsrfBaseForm):
     order_heading = HiddenField(label="Order details")
     stl_models = FileField(
         label="Models",
@@ -12,7 +12,6 @@ class UploadForm(CsrfBaseForm):
         widget=FileInput(True),
         render_kw={"accept": ".stl", "class": "form-control"}
     )
-    # TODO populate `material` and `color` choices from Material model
     material = SelectField(
         label="Material",
         choices=[
@@ -32,6 +31,16 @@ class UploadForm(CsrfBaseForm):
         render_kw={"class": "form-select"}
     )
     delivery_heading = HiddenField(label="Delivery address details")
+    city = StringField(
+        label="City",
+        validators=[validators.input_required()],
+        render_kw={"class": "form-control"}
+    )
+    postal_code = StringField(
+        label="Postal Code",
+        validators=[validators.input_required()],
+        render_kw={"class": "form-control"}
+    )
     address_line1 = StringField(
         label="Address line 1",
         validators=[validators.input_required()],

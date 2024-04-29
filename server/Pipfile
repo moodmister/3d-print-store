@@ -8,6 +8,7 @@ python-dotenv = "*"
 psycopg2-binary = "*"
 wtforms = "*"
 flask-migrate = "*"
+flask-admin = "*"
 
 [dev-packages]
 

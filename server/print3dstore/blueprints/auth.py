@@ -52,7 +52,7 @@ def login():
         session["user_id"] = user.id
 
         redirect_to_url = url_for("main.root")
-        if session["redirected_from_url"] is not None:
+        if session.get("redirected_from_url") is not None:
             redirect_to_url = session["redirected_from_url"]
 
         return redirect(redirect_to_url)
@@ -66,7 +66,7 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
-        g.user = User.query.filter_by(id=user_id).first()
+        g.user = db.get_or_404(User, user_id)
         g.roles = g.user.roles
 
 

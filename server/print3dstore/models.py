@@ -1,3 +1,5 @@
+from enum import StrEnum
+import json
 from flask_sqlalchemy import SQLAlchemy
 from typing import List, Optional
 from sqlalchemy import ForeignKey, Integer, String
@@ -73,6 +75,10 @@ class StlModel(db.Model):
     order_id: Mapped[int] = mapped_column(ForeignKey("order.id"))
     order: Mapped["Order"] = relationship(back_populates="stl_models", foreign_keys=order_id)
 
+    color: Mapped[str|None]
+    material_id: Mapped[int] = mapped_column(ForeignKey("material.id"))
+    material: Mapped["Material"] = relationship(foreign_keys=material_id)
+
     estimated_time: Mapped[int|None]
     estimated_cost: Mapped[int|None]
 
@@ -86,6 +92,7 @@ class PaymentGateway(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
     type: Mapped[str]
+
 
 class User(db.Model):
     __tablename__ = "user"
@@ -103,10 +110,12 @@ class User(db.Model):
     address_line1: Mapped[str|None]
     address_line2: Mapped[str|None]
 
+    phone: Mapped[str|None]
+
     def has_permission(self, permission):
         for user_role in self.roles:
-            if permission in user_role.role.permissions.split(","):
-                return True
+            permissions_json = json.loads(user_role.role.permissions)
+            return permissions_json.get(permission)
         return False
 
     def __repr__(self) -> str:
@@ -114,6 +123,46 @@ class User(db.Model):
 
 
 class Role(db.Model):
+    all_permissions = {
+        "Superuser": "superuser",
+        "Order": {
+            "read": "read_orders",
+            "write": "write_orders"
+        },
+        "User": {
+            "read": "read_users",
+            "write": "write_users"
+        },
+        "Role": {
+            "read": "read_roles",
+            "write": "write_roles"
+        },
+        "Material": {
+            "read": "read_materials",
+            "write": "write_materials"
+        },
+        "File": {
+            "read": "read_files",
+            "write": "write_files"
+        },
+        "StlModel": {
+            "read": "read_stl_models",
+            "write": "write_stl_models"
+        },
+        "Spool": {
+            "read": "read_spools",
+            "write": "write_spools"
+        },
+        "Payment Gateway": {
+            "read": "read_payment_gateways",
+            "write": "write_payment_gateways"
+        },
+        "Printer": {
+            "read": "read_printers",
+            "write": "write_printers"
+        }
+    }
+
     __tablename__ = "role"
 
     id: Mapped[int] = mapped_column(primary_key=True)
