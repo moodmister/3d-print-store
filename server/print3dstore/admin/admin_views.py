@@ -1,3 +1,4 @@
+import datetime
 import math
 from flask import app, g
 from flask_admin.contrib.sqla import ModelView
@@ -89,3 +90,18 @@ class SpoolView(AccessControlView):
 
 class PaymentGatewayView(AccessControlView):
     pass
+
+
+class PrinterView(AccessControlView):
+    pass
+
+
+class StlModelView(AccessControlView):
+    column_formatters = dict(
+        file=lambda _v, _c, m, _p: m.file.full_path[
+                    m.file.full_path.rfind("/") + 1:
+                ],
+        material=lambda _v, _c, m, _p: m.material.name,
+        estimated_cost=lambda _v, _c, m, _p: m.estimated_cost / 100.0 if m.estimated_cost else 0,
+        estimated_time=lambda _v, _c, m, _p: str(datetime.timedelta(seconds=m.estimated_time)) if m.estimated_time else 0
+    )

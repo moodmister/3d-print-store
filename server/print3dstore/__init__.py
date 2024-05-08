@@ -14,8 +14,8 @@ from flask_admin.base import MenuLink
 from celery import Celery, Task
 
 from print3dstore.cli import load_fixtures_command
-from print3dstore.admin.admin_views import AccessControlView, MaterialView, OrderView, PaymentGatewayView, SpoolView, UserView
-from .models import Material, Order, PaymentGateway, Role, Spool, User, db
+from print3dstore.admin.admin_views import AccessControlView, MaterialView, OrderView, PaymentGatewayView, PrinterView, SpoolView, StlModelView, UserView
+from .models import Material, Order, PaymentGateway, Printer, Role, Spool, StlModel, User, db
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
@@ -41,8 +41,10 @@ def create_app(test_config=None):
     admin.menu().insert(0, MenuLink(name="Home Page", url="/"))
 
     admin.add_view(MaterialView(Material, db.session, endpoint="materials"))
+    admin.add_view(PrinterView(Printer, db.session, endpoint="printers"))
     admin.add_view(SpoolView(Spool, db.session, endpoint="spools"))
     admin.add_view(OrderView(Order, db.session, endpoint="orders"))
+    admin.add_view(StlModelView(StlModel, db.session, endpoint="stl-models"))
     admin.add_view(PaymentGatewayView(PaymentGateway, db.session, endpoint="payment-gateways"))
     admin.add_view(UserView(User, db.session, endpoint="users"))
     admin.add_view(ModelView(Role, db.session, endpoint="roles"))

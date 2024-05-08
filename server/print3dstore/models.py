@@ -145,7 +145,7 @@ class Role(db.Model):
             "read": "read_files",
             "write": "write_files"
         },
-        "StlModel": {
+        "Stl Model": {
             "read": "read_stl_models",
             "write": "write_stl_models"
         },
