@@ -9,6 +9,8 @@ psycopg2-binary = "*"
 wtforms = "*"
 flask-migrate = "*"
 flask-admin = "*"
+celery = "*"
+redis = "*"
 
 [dev-packages]
 

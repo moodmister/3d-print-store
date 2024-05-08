@@ -1,11 +1,15 @@
 from flask import Blueprint, current_app, g, make_response, redirect, render_template, request, url_for
 
+import uuid
+
 from print3dstore.wrapper_functions import error_handler
 from print3dstore.errors import RequestException
 from print3dstore.blueprints.auth import login_required
 from print3dstore.models import PaymentGateway, Spool, User, db, File, Material, Order, StlModel
 
 from .forms.order import OrderForm
+
+from .tasks import tasks
 
 bp = Blueprint("order", __name__)
 
@@ -70,7 +74,8 @@ def order():
 
         files_added = []
         for stl_file in stl_files:
-            file_path = f"{current_app.root_path}/media/{stl_file.filename}"
+            file_path = f"{current_app.root_path}/media/{material.name}-{color}-{str(uuid.uuid4())}-{stl_file.filename}"
+            tasks.slice.delay(file_path)
             stl_file.save(file_path)
             new_file = File(full_path=file_path)
 

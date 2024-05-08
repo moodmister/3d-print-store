@@ -11,6 +11,8 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.base import MenuLink
 
+from celery import Celery, Task
+
 from print3dstore.cli import load_fixtures_command
 from print3dstore.admin.admin_views import AccessControlView, MaterialView, OrderView, PaymentGatewayView, SpoolView, UserView
 from .models import Material, Order, PaymentGateway, Role, Spool, User, db
@@ -18,17 +20,19 @@ from .models import Material, Order, PaymentGateway, Role, Spool, User, db
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(dotenv_values(".env"))
+    celery_init_app(app)
 
     db.init_app(app)
 
     migrate = Migrate(app, db, f"{app.root_path}/migrations")
 
-    from .blueprints import main, media, auth, profile, order
+    from .blueprints import main, media, auth, profile, order, tasks
     app.register_blueprint(main.bp)
     app.register_blueprint(media.bp)
     app.register_blueprint(auth.bp)
     app.register_blueprint(profile.bp)
     app.register_blueprint(order.bp)
+    app.register_blueprint(tasks.bp)
 
     app.config["FLASK_ADMIN_FLUID_LAYOUT"] = True
     app.config["FLASK_ADMIN_SWATCH"] = "morph"
@@ -64,3 +68,22 @@ def create_app(test_config=None):
     app.cli.add_command(load_fixtures_command)
 
     return app
+
+
+def celery_init_app(app: Flask) -> Celery:
+    class FlaskTask(Task):
+        def __call__(self, *args: object, **kwargs: object) -> object:
+            with app.app_context():
+                return self.run(*args, **kwargs)
+
+    celery_app = Celery(app.name, task_cls=FlaskTask)
+    celery_app.config_from_object(
+        dict(
+            broker_url=app.config["CELERY_BROKER_URL"],
+            result_backend=app.config["CELERY_RESULT_BACKEND"],
+            task_ignore_result=app.config["CELERY_IGNORE_RESULT"],
+        )
+    )
+    celery_app.set_default()
+    app.extensions["celery"] = celery_app
+    return celery_app

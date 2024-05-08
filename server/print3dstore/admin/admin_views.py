@@ -1,3 +1,4 @@
+import math
 from flask import app, g
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import SecureForm
@@ -45,10 +46,10 @@ class OrderView(AccessControlView):
     column_list = [
         "user",
         "stl_models",
+        "estimated_time",
         "estimated_cost",
         "real_cost",
         "shipping_cost",
-        "payment_gateway_id",
         "payment_gateway",
     ]
     column_formatters = dict(
@@ -58,6 +59,18 @@ class OrderView(AccessControlView):
                 lambda model: model.file.full_path[
                     model.file.full_path.rfind("/") + 1:
                 ],
+                m.stl_models
+            )
+        ),
+        estimated_cost=lambda _v, _c, m, _p: list(
+            map(
+                lambda model: model.estimated_cost / 100.0 if model.estimated_cost else 0,
+                m.stl_models
+            )
+        ),
+        estimated_time=lambda _v, _c, m, _p: list(
+            map(
+                lambda model: math.ceil(model.estimated_time / 3600) if model.estimated_time else 0,
                 m.stl_models
             )
         ),
