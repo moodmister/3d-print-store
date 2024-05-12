@@ -74,7 +74,7 @@ def order():
 
         files_added = []
         for stl_file in stl_files:
-            file_path = f"{current_app.root_path}/media/{material.name}-{color}-{str(uuid.uuid4())}-{stl_file.filename}"
+            file_path = f"{current_app.root_path}/media/{material.name.upper().replace(' ', '_')}-{color.upper().replace(' ', '_')}-{str(uuid.uuid4())}-{stl_file.filename.replace(' ', '_')}"
             tasks.slice.delay(file_path)
             stl_file.save(file_path)
             new_file = File(full_path=file_path)

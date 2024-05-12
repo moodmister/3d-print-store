@@ -9,7 +9,7 @@ class OrderForm(CsrfBaseForm):
     stl_models = FileField(
         label="Models",
         validators=[validators.input_required()],
-        widget=FileInput(True),
+        widget=FileInput(False),
         render_kw={"accept": ".stl", "class": "form-control"}
     )
     material = SelectField(
