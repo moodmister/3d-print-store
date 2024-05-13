@@ -46,7 +46,7 @@ def order():
             return render_template("order.html", form=form)
 
         stl_files = request.files.getlist("stl_models")
-        material = request.form.get("material")
+        material_name = request.form.get("material")
         color = request.form.get("color")
         city = request.form.get("city")
         address_line1 = request.form.get("address_line1")
@@ -55,7 +55,7 @@ def order():
         payment_method = request.form.get("payment_method")
 
         material = db.first_or_404(
-            db.select(Material).filter_by(name=material),
+            db.select(Material).filter_by(name=material_name),
             description=f"No such material found in our database"
         )
 
@@ -74,8 +74,12 @@ def order():
 
         files_added = []
         for stl_file in stl_files:
-            file_path = f"{current_app.root_path}/media/{material.name.upper().replace(' ', '_')}-{color.upper().replace(' ', '_')}-{str(uuid.uuid4())}-{stl_file.filename.replace(' ', '_')}"
-            tasks.slice.delay(file_path)
+            mat = material_name.upper().replace(" ", "_")
+            col = color.upper().replace(" ", "_")
+            file_name = stl_file.filename.replace(" ", "_")
+
+            file_path = f"{current_app.root_path}/media/{mat}-{col}-{str(uuid.uuid4())}-{file_name}"
+            tasks.slice.delay(file_path, material)
             stl_file.save(file_path)
             new_file = File(full_path=file_path)
 

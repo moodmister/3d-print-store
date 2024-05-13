@@ -44,6 +44,12 @@ class File(db.Model):
 
 
 class Order(db.Model):
+    class Status(StrEnum):
+        QUEUED = "queued"
+        IN_PROGRESS = "in progress"
+        SHIPPED = "shipped"
+        FINISHED = "finished"
+
     __tablename__ = "order"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -57,6 +63,7 @@ class Order(db.Model):
     estimated_cost: Mapped[int|None]
     real_cost: Mapped[int|None]
     shipping_cost: Mapped[int|None]
+    status: Mapped[str] = mapped_column(default=Status.QUEUED)
 
     payment_gateway_id: Mapped[int] = mapped_column(ForeignKey("payment_gateway.id"))
     payment_gateway: Mapped["PaymentGateway"] = relationship(foreign_keys=payment_gateway_id)

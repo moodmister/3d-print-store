@@ -10,7 +10,7 @@ from celery.result import AsyncResult
 from flask import Blueprint, render_template
 from flask import request
 
-from print3dstore.models import File, StlModel, db
+from print3dstore.models import File, Material, StlModel, db
 
 from . import tasks
 
@@ -40,7 +40,7 @@ def process() -> dict[str, object]:
     return {"result_id": result.id}
 
 @shared_task(ignore_result=False)
-def slice(file_path: str) -> dict:
+def slice(file_path: str, material: Material) -> dict:
     try:
         run_command = subprocess.run(
             ["bash", "./print3dstore/slicer/prusa-slicer", "-g", file_path, "--load", "./print3dstore/slicer/general.ini"],
@@ -81,14 +81,17 @@ def slice(file_path: str) -> dict:
         estimated_minutes = int(minutes.group(1)) if minutes else 0
         estimated_seconds = int(seconds.group(1)) if seconds else 0
 
-        estimated_time_in_seconds = estimated_hours * 3600 + estimated_minutes * 60 + estimated_seconds
+        estimated_time_in_seconds = estimated_hours * 3600 + \
+            estimated_minutes * 60 + \
+                estimated_seconds
 
         file = db.session.execute(
             db.select(File).filter_by(full_path=file_path)
         ).scalar_one_or_none()
 
         file.stl_model.estimated_time = estimated_time_in_seconds
-        file.stl_model.estimated_cost = math.ceil(estimated_time_in_seconds / 3600) * 150 + math.ceil(float(filament_used)) * 7
+        file.stl_model.estimated_cost = math.ceil(estimated_time_in_seconds / 3600) * 150 +\
+            math.ceil(float(filament_used)) * material.cost_per_gram
 
         db.session.commit()
 

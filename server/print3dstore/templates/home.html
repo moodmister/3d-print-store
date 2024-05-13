@@ -1,6 +1,75 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container p-5">
-  <h1>Welcome to your 3d print store manager</h1>
+  <h1>3D Print Store</h1>
+  <div class="container p-0 pb-5">
+    <div id="carouselExample" class="carousel carousel-dark slide">
+      <div class="carousel-inner">
+        <div class="carousel-item active">
+          <img src="{{ url_for('static', filename='img/desert.jpg') }}" class="d-block" alt="desert" height="600" width="1200">
+        </div>
+        <div class="carousel-item">
+          <img src="{{ url_for('static', filename='img/windows.jpg') }}" class="d-block" alt="windows" height="600" width="1200">
+        </div>
+        <div class="carousel-item">
+          <img src="{{ url_for('static', filename='img/tree.jpg') }}" class="d-block" alt="tree" height="600" width="1200">
+        </div>
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+      </button>
+    </div>
+  </div>
+  <h3 id="-3d-">Добре дошли в платформата за 3D печат</h3>
+  <p>
+    Ние осигуряваме цялостно решение за управление на Вашия 3D принт бизнес.
+    Нашата платформа е проектирана да оптимизира и автоматизира процесите от
+    началото до края - от приемането на поръчки до крайния 3D печат. Ние Ви
+    предлагаме мощни инструменти, които улесняват управлението на поръчките,
+    планирането на производството и проследяването на процеса в реално време.
+  </p>
+  <p><strong>Основни функции:</strong></p>
+  <ul>
+    <li>
+      <strong>Приемане на поръчки</strong> - Качвайте лесно Вашите 3D модели и
+      избирайте материалите и цветовете, от които имате нужда.
+    </li>
+    <li>
+      <strong>Изчисление на цени:</strong> Получавайте бързи и точни оценки за
+      времето и материалите, необходими за всяка поръчка.
+    </li>
+  </ul>
+  <p><strong>Предимства</strong></p>
+  <ul>
+    <li>
+      <strong>Удобство</strong> - Всичко, от което се нуждаете, на едно място.
+      Управлявайте поръчки, следете прогреса и комуникирайте с клиенти без усилие.
+    </li>
+    <li>
+      <strong>Ефективност</strong> - Намалете времето за доставка и увеличете
+      производителността, благодарение на нашите автоматизирани инструменти.
+    </li>
+    <li>
+      <strong>Гъвкавост</strong> - Персонализирайте всяка част от процеса, за да
+      отговаря на специфичните нужди на Вашия бизнес.
+    </li>
+    <li>
+      <strong>Сигурност</strong> - Защитете Вашите данни и тези на Вашите клиенти
+      с висококачествени сигурностни мерки.
+    </li>
+  </ul>
+  <p>
+    <strong>Потърсете ни:</strong> Ако имате въпроси или нужда от помощ, нашите
+    експерти са на разположение, за да Ви подкрепят във всяка стъпка.
+  </p>
+  <p>
+    Регистрирайте се сега и преоткрийте ефективността!
+  </p>
+
 </div>
 {% endblock %}

@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { ArcballControls } from 'three/addons/controls/ArcballControls.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 
@@ -36,6 +35,7 @@ scene.add(axes);
 
 const renderer = new THREE.WebGLRenderer( { antialias: true } );
 renderer.setSize( width, height );
+renderer.setClearColor(0x212529, 0);
 
 stlViewWrapper.appendChild( renderer.domElement );
 
