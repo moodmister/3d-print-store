@@ -39,6 +39,13 @@ def order():
             payment_gateways
         )
     )
+    if g.user is not None:
+        form.city.data = g.user.city
+        form.postal_code.data = g.user.postal_code
+        form.address_line1.data = g.user.address_line1
+        form.address_line2.data = g.user.address_line2
+        form.phone.data = g.user.phone
+
     if request.method == "POST":
         form.process(request.form)
         form.stl_models.raw_data = request.files.getlist("stl_models")
@@ -49,6 +56,7 @@ def order():
         material_name = request.form.get("material")
         color = request.form.get("color")
         city = request.form.get("city")
+        postal_code = request.form.get("postal_code")
         address_line1 = request.form.get("address_line1")
         address_line2 = request.form.get("address_line2")
         phone = request.form.get("phone")
@@ -66,6 +74,7 @@ def order():
         user.address_line1 = address_line1
         user.address_line2 = address_line2
         user.city = city
+        user.postal_code = postal_code
         user.phone = phone
 
         payment_gateway = db.first_or_404(
@@ -79,7 +88,7 @@ def order():
             file_name = stl_file.filename.replace(" ", "_")
 
             file_path = f"{current_app.root_path}/media/{mat}-{col}-{str(uuid.uuid4())}-{file_name}"
-            tasks.slice.delay(file_path, material)
+            tasks.slice.delay(file_path, material.id)
             stl_file.save(file_path)
             new_file = File(full_path=file_path)
 

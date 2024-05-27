@@ -4,14 +4,14 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from print3dstore.errors import RequestException
 from print3dstore.models import Role, User, db
 from print3dstore.wrapper_functions import error_handler
-from .forms.auth import AuthForm
+from .forms.auth import AuthForm, RegisterForm
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 @bp.route("/register", methods=["GET", "POST"])
 @error_handler
 def register():
-    form = AuthForm(request.form)
+    form = RegisterForm(request.form)
 
     if request.method == "POST" and form.validate():
         email = request.form["email"]
@@ -88,4 +88,4 @@ def logout():
     session.clear()
     g.user = None
     g.role = None
-    return redirect(url_for("index"))
+    return redirect(url_for("main.root"))

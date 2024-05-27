@@ -1,0 +1,60 @@
+{% extends 'profile/wrapper.html' %}
+
+{% block information %}
+<h2>Profile Settings</h2>
+<div class="mb-5">
+  <h3>Profile Information</h3>
+  <form action="{{ url_for('profile.settings')}}" method="post" enctype="multipart/form-data">
+    {% for field in address_form %}
+      {% if field.id != "csrf_token" %}
+        {% if field.errors %}
+          {{ field.label(class="form-label mt-4 is-invalid") }}<br>
+        {% else %}
+          {{ field.label(class="form-label mt-4") }}<br>
+        {% endif %}
+      {% endif %}
+        {{ field }}
+      {% if field.errors %}
+      <div class="invalid-feedback">
+        <ul class="errors">
+          {% for error in field.errors %}
+          <li>
+            {{ error }}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    {% endfor %}
+    <button class="btn mt-4">Save</button>
+  </form>
+</div>
+<div class="mb-5">
+
+  <h3>Change password</h3>
+  <form action="{{ url_for('profile.change_password')}}" method="post" enctype="multipart/form-data">
+    {% for field in password_form %}
+      {% if field.id != "csrf_token" %}
+      {% if field.errors %}
+      {{ field.label(class="form-label mt-4 is-invalid") }}<br>
+      {% else %}
+      {{ field.label(class="form-label mt-4") }}<br>
+      {% endif %}
+      {% endif %}
+      {{ field }}
+      {% if field.errors %}
+      <div class="invalid-feedback">
+        <ul class="errors">
+          {% for error in field.errors %}
+          <li>
+            {{ error }}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    {% endfor %}
+    <button class="btn mt-4">Submit</button>
+  </form>
+</div>
+{% endblock %}

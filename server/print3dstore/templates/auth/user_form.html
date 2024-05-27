@@ -7,9 +7,28 @@
   {% for message in get_flashed_messages() %}<div class="flash">{{ message }}</div>{% endfor %}
   <div class="container p-5">
     <h1>{{ action|capitalize }}</h1>
-    <form class="form" action="{{ url_for(action_endpoint) }}" method="post">
-      {{ form.email.label }}: {{ form.email(class='form-control') }}
-      {{ form.password.label }}: {{ form.password(class='form-control') }}
+    <form action="{{ url_for(action_endpoint) }}" method="post">
+      {% for field in form %}
+        {% if field.id != "csrf_token" %}
+          {% if field.errors %}
+            {{ field.label(class="form-label mt-4 is-invalid") }}<br>
+          {% else %}
+            {{ field.label(class="form-label mt-4") }}<br>
+          {% endif %}
+        {% endif %}
+        {{ field }}
+        {% if field.errors %}
+        <div class="invalid-feedback">
+          <ul class="errors">
+            {% for error in field.errors %}
+            <li>
+              {{ error }}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+      {% endfor %}
       <div class="text-center">
         <button class="btn w-75 btn-primary mt-5" type="submit">
           {{ action|capitalize }}

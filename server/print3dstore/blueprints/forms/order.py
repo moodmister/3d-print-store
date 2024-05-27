@@ -62,3 +62,6 @@ class OrderForm(CsrfBaseForm):
         choices=["Credit card", "Cash"],
         render_kw={"class": "form-select"}
     )
+
+class OrderEditForm(OrderForm):
+    status = SelectField("Status", choices=['', ''])

@@ -1,0 +1,33 @@
+{% extends 'profile/wrapper.html' %}
+
+{% block information %}
+  <h2>Welcome to your dashboard, {{ g.user.first_name | default("User", true) }}!</h2>
+    <div class="row">
+      <div class="col-lg p-1">
+        <h3>Your orders</h3>
+        <div class="list-group">
+          {% for order in g.user.orders %}
+            {% set pill_class = 'bg-primary' %}
+            {% if order.status == "in progress" %}
+              {% set pill_class = 'bg-info' %}
+            {% elif order.status == 'shipped' %}
+              {% set pill_class = 'bg-info' %}
+            {% elif order.status == 'finished' %}
+              {% set pill_class = 'bg-success' %}
+            {% elif order.status == 'canceled' %}
+              {% set pill_class = 'bg-danger' %}
+            {% endif %}
+            <div class="list-group-item d-flex justify-content-between">
+              Order #{{ order.id }}
+              <span class="badge {{ pill_class }} rounded-pill">{{ order.status }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="col-lg p-1 d-flex flex-column justify-content-end text-center">
+        <a class="btn btn-primary m-2" href="{{ url_for('order.order') }}">
+          Order new
+        </a>
+      </div>
+    </div>
+{% endblock %}

@@ -26,14 +26,12 @@
               Home
               </a>
             </li>
-            {% if g.user is not none %}
-              <li class="nav-item">
-                <a class="nav-link {% if url_for('auth.login') == url_for(request.endpoint) %}active{% endif %}"
-                  href="{{ url_for('order.order') }}">
-                  Order
-                </a>
-              </li>
-            {% endif %}
+            <li class="nav-item">
+              <a class="nav-link {% if url_for('auth.login') == url_for(request.endpoint) %}active{% endif %}"
+                href="{{ url_for('order.order') }}">
+                Order
+              </a>
+            </li>
             {% if g.user is none %}
               <li class="nav-item">
                 <a class="nav-link {% if url_for('auth.login') == url_for(request.endpoint) %}active{% endif %}"

@@ -1,0 +1,22 @@
+{% extends 'profile/wrapper.html' %}
+
+{% block information %}
+<h2>Orders</h2>
+<ul class="list-group">
+  {% for order in g.user.orders %}
+    <li class="list-group-item">
+      Order #{{ order.id }}
+      <ul class="list-group">
+        {% for stl_model in order.stl_models %}
+          <li class="list-group-item">
+            {% set estimated_time = stl_model.estimated_time / 3600 %}
+            {{ stl_model.estimated_cost / 100.0 }}--
+            {{ estimated_time |round(method='ceil')|int }}h
+            <a href="#model-viewer" class="view-model float-end">View model</a>
+          </li>
+        {% endfor %}
+      </ul>
+      {% endfor %}
+    </li>
+</ul>
+{% endblock %}

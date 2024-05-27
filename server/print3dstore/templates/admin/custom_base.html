@@ -12,6 +12,7 @@
         <meta name="author" content="">
     {% endblock %}
     {% block head_css %}
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
         <link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet">
         <link rel="stylesheet" href="{{ url_for('static', filename='style.css')}}">
         <link href="{{ admin_static.url(filename='admin/css/bootstrap4/admin.css', v='1.1.1') }}" rel="stylesheet">

@@ -40,8 +40,9 @@ def process() -> dict[str, object]:
     return {"result_id": result.id}
 
 @shared_task(ignore_result=False)
-def slice(file_path: str, material: Material) -> dict:
+def slice(file_path: str, material_id: int) -> dict:
     try:
+        material = db.get_or_404(Material, material_id)
         run_command = subprocess.run(
             ["bash", "./print3dstore/slicer/prusa-slicer", "-g", file_path, "--load", "./print3dstore/slicer/general.ini"],
             capture_output=True
