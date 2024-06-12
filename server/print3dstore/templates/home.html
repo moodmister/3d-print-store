@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container p-5">
+<div class="container p-5 text-center">
   <h1>3D Print Store</h1>
   <div class="container p-0 pb-5">
     <div id="carouselExample" class="carousel carousel-dark slide">
@@ -25,51 +25,28 @@
       </button>
     </div>
   </div>
-  <h3 id="-3d-">Добре дошли в платформата за 3D печат</h3>
-  <p>
-    Ние осигуряваме цялостно решение за управление на Вашия 3D принт бизнес.
-    Нашата платформа е проектирана да оптимизира и автоматизира процесите от
-    началото до края - от приемането на поръчки до крайния 3D печат. Ние Ви
-    предлагаме мощни инструменти, които улесняват управлението на поръчките,
-    планирането на производството и проследяването на процеса в реално време.
-  </p>
-  <p><strong>Основни функции:</strong></p>
-  <ul>
-    <li>
-      <strong>Приемане на поръчки</strong> - Качвайте лесно Вашите 3D модели и
-      избирайте материалите и цветовете, от които имате нужда.
-    </li>
-    <li>
-      <strong>Изчисление на цени:</strong> Получавайте бързи и точни оценки за
-      времето и материалите, необходими за всяка поръчка.
-    </li>
-  </ul>
-  <p><strong>Предимства</strong></p>
-  <ul>
-    <li>
-      <strong>Удобство</strong> - Всичко, от което се нуждаете, на едно място.
-      Управлявайте поръчки, следете прогреса и комуникирайте с клиенти без усилие.
-    </li>
-    <li>
-      <strong>Ефективност</strong> - Намалете времето за доставка и увеличете
-      производителността, благодарение на нашите автоматизирани инструменти.
-    </li>
-    <li>
-      <strong>Гъвкавост</strong> - Персонализирайте всяка част от процеса, за да
-      отговаря на специфичните нужди на Вашия бизнес.
-    </li>
-    <li>
-      <strong>Сигурност</strong> - Защитете Вашите данни и тези на Вашите клиенти
-      с висококачествени сигурностни мерки.
-    </li>
-  </ul>
-  <p>
-    <strong>Потърсете ни:</strong> Ако имате въпроси или нужда от помощ, нашите
-    експерти са на разположение, за да Ви подкрепят във всяка стъпка.
-  </p>
-  <p>
-    Регистрирайте се сега и преоткрийте ефективността!
-  </p>
+  <div class="card p-4">
+    <div class="container w-100">
+      <h1>Welcome to Our 3D Print Management Platform</h1>
+      <div class="row justify-content-center">
+        <div class="card col-4 m-2">
+          <p class="p-2">Our platform simplifies the process of managing 3D print orders and inventory.</p>
+        </div>
+        <div class="card col-4 m-2">
+          <p class="p-2">Easily upload your models, select materials, and track your orders from start to finish.</p>
+        </div>
+      </div>
+    </div>
+    {% if g.user %}
+      <div class="container p-2 text-center">
+        <a href="{{ url_for('order.order')}}" class="btn">Order Now</a>
+      </div>
+    {% else %}
+    <div class="container p-2 text-center">
+      <a href="{{ url_for('auth.register')}}" class="btn">Register Now</a>
+    </div>
+    {% endif %}
+  </div>
 
 </div>
 {% endblock %}

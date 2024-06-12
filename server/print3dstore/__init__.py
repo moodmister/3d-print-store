@@ -5,7 +5,7 @@ Date: 2024-03-29
 """
 import os
 from dotenv import dotenv_values
-from flask import Flask
+from flask import Flask, g
 from flask_migrate import Migrate
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
@@ -14,7 +14,7 @@ from flask_admin.base import MenuLink
 from celery import Celery, Task
 
 from print3dstore.cli import load_fixtures_command
-from print3dstore.admin.admin_views import AccessControlView, MaterialView, OrderView, PaymentGatewayView, PrinterView, RoleView, SpoolView, StlModelView, UserView
+from print3dstore.admin.admin_views import AccessControlView, AnalyticsView, MaterialView, OrderView, PaymentGatewayView, PrinterView, RoleView, SpoolView, StlModelView, UserView
 from .models import Material, Order, PaymentGateway, Printer, Role, Spool, StlModel, User, db
 
 def create_app(test_config=None):
@@ -40,6 +40,7 @@ def create_app(test_config=None):
     admin = Admin(name=app.name, template_mode="bootstrap4", base_template="admin/custom_base.html")
     admin.menu().insert(0, MenuLink(name="Back to site", url="/"))
 
+    admin.add_view(AnalyticsView("Analytics", endpoint="/analytics"))
     admin.add_view(MaterialView(Material, db.session, endpoint="materials"))
     admin.add_view(PrinterView(Printer, db.session, endpoint="printers"))
     admin.add_view(SpoolView(Spool, db.session, endpoint="spools"))

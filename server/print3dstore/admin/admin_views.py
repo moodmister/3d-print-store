@@ -2,15 +2,23 @@ import datetime
 import json
 import math
 from flask import app, g
+from flask_admin import BaseView, expose
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import SecureForm
 
-from print3dstore.models import Order, Role
+from print3dstore.models import db, Order, Role, Spool
 from print3dstore.errors import RequestException
 from print3dstore.blueprints.forms.order import OrderEditForm, OrderForm
 
 # TODO Add form properties to the views and customize what's necessary
 # TODO Add example order and customize order view
+
+class AnalyticsView(BaseView):
+    @expose("/")
+    def index(self):
+        spools = db.session.scalars(db.select(Spool)).all()
+        orders = db.session.scalars(db.select(Order)).all()
+        return self.render('admin/analytics.html', spools=spools, orders=orders)
 
 class AccessControlView(ModelView):
     form_base_class = SecureForm
@@ -94,6 +102,13 @@ class MaterialView(AccessControlView):
 
 
 class SpoolView(AccessControlView):
+    column_list = [
+        "make",
+        "material",
+        "color",
+        "grams",
+        "grams_left"
+    ]
     column_formatters = dict(
         material=lambda _v, _c, m, _p: m.material.name
     )
