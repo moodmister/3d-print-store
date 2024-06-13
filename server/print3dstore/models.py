@@ -22,6 +22,9 @@ class Material(db.Model):
     name: Mapped[str]
     cost_per_gram: Mapped[int]
 
+    def __repr__(self) -> str:
+        return self.name
+
 
 class Spool(db.Model):
     __tablename__ = "spool"
@@ -90,7 +93,7 @@ class StlModel(db.Model):
     estimated_cost: Mapped[int|None]
 
     def __repr__(self) -> str:
-        return f"StlModel(id{self.id})"
+        return f"StlModel(id{self.file.full_path.split('/')[-1]})"
 
 
 class PaymentGateway(db.Model):
@@ -99,6 +102,9 @@ class PaymentGateway(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
     type: Mapped[str]
+
+    def __repr__(self) -> str:
+        return f"{self.name} ({self.type})"
 
 
 class User(db.Model):

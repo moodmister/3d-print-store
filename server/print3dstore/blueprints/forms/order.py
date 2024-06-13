@@ -65,3 +65,4 @@ class OrderForm(CsrfBaseForm):
 
 class OrderEditForm(OrderForm):
     status = SelectField("Status", choices=['', ''])
+    stl_models = None
