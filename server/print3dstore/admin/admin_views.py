@@ -1,18 +1,32 @@
 import datetime
 import json
 import math
-from flask import app, g, make_response, redirect, render_template, request, url_for
-from flask_admin import BaseView, expose
+from flask import app, flash, g, make_response, redirect, render_template, request, session
+from werkzeug.security import generate_password_hash
+from flask_admin import BaseView, expose, AdminIndexView
 from flask_admin.contrib.sqla import ModelView
-from flask_admin.form import SecureForm
+from flask_admin.form import SecureForm, rules
+from wtforms.validators import DataRequired
 
-from print3dstore.models import Material, PaymentGateway, StlModel, db, Order, Role, Spool
+from print3dstore.models import Material, PaymentGateway, StlModel, User, UserRole, db, Order, Role, Spool
 from print3dstore.errors import RequestException
-from print3dstore.blueprints.forms.order import OrderEditForm, OrderForm
-from print3dstore.wrapper_functions import error_handler
+from print3dstore.blueprints.forms.order import OrderEditForm
+from print3dstore.blueprints.forms.user import UserForm
 
 # TODO Add form properties to the views and customize what's necessary
 # TODO Add example order and customize order view
+
+class DashboardView(AdminIndexView):
+
+    def is_visible(self):
+        # This view won't appear in the menu structure
+        return False
+
+    @expose('/')
+    def index(self):
+
+        return redirect("/admin/analytics")
+
 
 class AnalyticsView(BaseView):
     @expose("/")
@@ -20,6 +34,11 @@ class AnalyticsView(BaseView):
         spools = db.session.scalars(db.select(Spool)).all()
         orders = db.session.scalars(db.select(Order)).all()
         return self.render('admin/analytics.html', spools=spools, orders=orders)
+    
+    def is_accessible(self):
+        if g.user is None:
+            return False
+        return g.user.has_permission(Role.all_permissions["Spool"]["read"]) or g.user.has_permission(Role.all_permissions["Superuser"])
 
 class AccessControlView(ModelView):
     form_base_class = SecureForm
@@ -31,12 +50,12 @@ class AccessControlView(ModelView):
 
 
 class UserView(AccessControlView):
+    can_create = False
     column_list = [
         "id",
         "first_name",
         "last_name",
         "email",
-        "password",
         "roles",
         "city",
         "postal_code",
@@ -44,11 +63,74 @@ class UserView(AccessControlView):
         "address_line2",
         "phone",
     ]
-    column_exclude_list = ["password",]
     column_searchable_list = ["first_name", "last_name", "email"]
+
     column_formatters = dict(
         roles=lambda _v, _c, m, _p: ", ".join(list(map(lambda user_role: user_role.role.name ,m.roles)))
     )
+
+    form = UserForm
+
+    @expose("/edit", methods=["GET", "POST"])
+    def edit_view(self):
+        if request.method == "GET":
+            return super().edit_view()
+        roles = db.session.scalars(db.select(Role)).all()
+
+        user_form = UserForm()
+        user_form.roles.choices = [(role.id, role.name) for role in roles]
+        user_form.process(request.form)
+
+        if not user_form.validate():
+            flash(user_form.errors)
+            return redirect("/admin/users")
+
+        user = db.get_or_404(User, request.args["id"])
+        other_users = db.session.scalars(db.select(User).where(User.id != user.id)).all()
+
+        for other_user in other_users:
+            if other_user.email == user_form.email.data:
+                flash("Email already exists", "danger")
+                return redirect("/admin/users")
+
+        if user_form.email.data != user.email:
+            print(user_form.email.data, user.email)
+            user.email = user_form.email.data
+
+        if user_form.password.data not in (None, ""):
+            user.password = generate_password_hash(user_form.password.data)
+
+        for role in user.roles:
+            db.session.delete(role)
+        for role_id in user_form.roles.data:
+            user_role = UserRole(user_id=user.id, role_id=int(role_id))
+            db.session.add(user_role)
+
+        user.first_name = user_form.first_name.data
+        user.last_name = user_form.last_name.data
+        user.city = user_form.city.data
+        user.postal_code = user_form.postal_code.data
+        user.address_line1 = user_form.address_line1.data
+        user.address_line2 = user_form.address_line2.data
+        user.phone = user_form.phone.data
+
+        db.session.commit()
+
+        return redirect("/admin/users")
+
+
+    def on_form_prefill(self, form, id):
+        user = db.get_or_404(User, id)
+        roles = db.session.scalars(db.select(Role)).all()
+        form.roles.choices = [(role.id, role.name) for role in roles]
+        form.roles.process_data([(user_role.role.id) for user_role in user.roles])
+
+        return super().on_form_prefill(form, id)
+
+    def on_model_delete(self, model):
+        if g.user.id == model.id:
+            session.clear()
+        return super().on_model_delete(model)
 
 
 class OrderView(AccessControlView):
@@ -57,10 +139,6 @@ class OrderView(AccessControlView):
     column_list = [
         "user",
         "stl_models",
-        # "estimated_printing_time",
-        # "estimated_cost",
-        # "real_cost",
-        # "shipping_cost",
         "payment_gateway",
         "address",
         "status"
@@ -170,7 +248,30 @@ class OrderView(AccessControlView):
 
 
 class MaterialView(AccessControlView):
-    pass
+    column_list = [
+        "name",
+        "cost_per_gram",
+    ]
+    column_formatters = {
+        "cost_per_gram": lambda _v, _c, m, _p: m.cost_per_gram / 100.0,
+    }
+    form_columns = [
+        "name",
+        "cost_per_gram"
+    ]
+    form_args = {
+        "cost_per_gram": {"label": "Cost per gram (in cents)", "validators": [DataRequired()]}
+    }
+    @expose("/delete", methods=["POST"])
+    def delete_view(self):
+        material = db.get_or_404(Material, request.form["id"])
+        spools = db.session.scalars(db.select(Spool).filter(Spool.material_id == material.id)).all()
+        stl_models = db.session.scalars(db.select(StlModel).filter(StlModel.material_id == material.id)).all()
+        if len(spools) > 0 or len (stl_models):
+            flash(f"Material {material.name} is used in stl models or spools. Delete them first.")
+            return redirect("/admin/materials")
+
+        return super().delete_view()
 
 
 class SpoolView(AccessControlView):
@@ -211,13 +312,20 @@ class RoleView(AccessControlView):
     column_list = [
         "name",
         "permissions",
-        "users"
     ]
     column_formatters = dict(
-        users=lambda _v, _c, m, _p: ", ".join(
-            str(user) for user in map(lambda user_role: user_role.user.email, m.users)
-        ),
         permissions=lambda _v, _c, m, _p: ", ".join(
             str(perm) for perm in json.loads(m.permissions)
         )
     )
+    form_columns = [
+        "name",
+        "permissions"
+    ]
+    @expose("/delete", methods=["POST"])
+    def delete_view(self):
+        role = db.get_or_404(Role, request.form["id"])
+        if len(role.users) > 0:
+            flash(f"Role {role.name} has users assigned to it. It cannot be deleted.", "danger")
+            return redirect("/admin/roles")
+        return super().delete_view()

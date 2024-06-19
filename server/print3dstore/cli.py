@@ -13,15 +13,17 @@ def load_fixtures_command():
     }
 
     user = User(email=email, password=generate_password_hash(password))
-    role = Role(name="superuser", permissions=json.dumps(permissions))
+    super_user_role = Role(name="superuser", permissions=json.dumps(permissions))
+    default_role = Role(name="user", permissions=json.dumps({}))
 
-    userRole = UserRole()
-    userRole.user = user
-    userRole.role = role
+    user_role = UserRole()
+    user_role.user = user
+    user_role.role = super_user_role
 
     db.session.add(user)
-    db.session.add(role)
-    db.session.add(userRole)
+    db.session.add(super_user_role)
+    db.session.add(user_role)
+    db.session.add(default_role)
 
     db.session.commit()
     click.echo("Superuser admin with password 'admin' has been created successfully.")

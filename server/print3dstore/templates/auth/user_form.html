@@ -4,7 +4,6 @@
   {{ super() }} - {{ action|capitalize }}
 {% endblock %}
 {% block content %}
-  {% for message in get_flashed_messages() %}<div class="flash">{{ message }}</div>{% endfor %}
   <div class="container p-5">
     <h1>{{ action|capitalize }}</h1>
     <form action="{{ url_for(action_endpoint) }}" method="post">

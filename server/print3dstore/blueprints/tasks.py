@@ -10,7 +10,7 @@ from celery.result import AsyncResult
 from flask import Blueprint, render_template
 from flask import request
 
-from print3dstore.models import File, Material, StlModel, db
+from print3dstore.models import File, Material, Order, StlModel, db
 
 from . import tasks
 
@@ -39,12 +39,16 @@ def process() -> dict[str, object]:
     result = tasks.process.delay(total=request.form.get("total", type=int))
     return {"result_id": result.id}
 
-@shared_task(ignore_result=False)
+@shared_task(ignore_result=False, autoretry_for=(Exception,))
 def slice(file_path: str, material_id: int) -> dict:
     try:
         material = db.get_or_404(Material, material_id)
+        file = db.session.execute(
+            db.select(File).filter_by(full_path=file_path)
+        ).scalar_one_or_none()
+
         run_command = subprocess.run(
-            ["bash", "./print3dstore/slicer/prusa-slicer", "-g", file_path, "--load", "./print3dstore/slicer/general.ini"],
+            ["bash", "./print3dstore/slicer/prusa-slicer", "-g", file_path, "--load", "./print3dstore/slicer/general.ini", "--threads", "1"],
             capture_output=True
         )
 
@@ -56,7 +60,15 @@ def slice(file_path: str, material_id: int) -> dict:
         gcode_path = re.search(r"Slicing result exported to (.+)", run_result, re.MULTILINE | re.IGNORECASE)
 
         if gcode_path is None:
-            raise Exception("Error with sliced file. Could not find result of slicing", run_error)
+            errors = []
+            if "exceeds the maximum build volume height" in run_error:
+                errors.append("This model cannot be printed, because it is too big. Try scaling it down.")
+
+            if len(errors) > 0:
+                file.stl_model.errors = " ".join(errors)
+                file.stl_model.order.status = Order.Status.CANCELLED
+                db.session.commit()
+            raise Exception("Error with sliced file. Could not find result of slicing\n", f"Slicer error: {run_error}")
 
         gcode_file = open(gcode_path.group(1), "r")
         gcode_contents = gcode_file.read()
@@ -85,10 +97,6 @@ def slice(file_path: str, material_id: int) -> dict:
         estimated_time_in_seconds = estimated_hours * 3600 + \
             estimated_minutes * 60 + \
                 estimated_seconds
-
-        file = db.session.execute(
-            db.select(File).filter_by(full_path=file_path)
-        ).scalar_one_or_none()
 
         file.stl_model.estimated_time = estimated_time_in_seconds
         file.stl_model.estimated_cost = math.ceil(estimated_time_in_seconds / 3600) * 150 +\

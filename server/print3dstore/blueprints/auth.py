@@ -2,39 +2,56 @@ import functools
 from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for, make_response
 from werkzeug.security import check_password_hash, generate_password_hash
 from print3dstore.errors import RequestException
-from print3dstore.models import Role, User, db
+from print3dstore.models import Role, User, UserRole, db
 from print3dstore.wrapper_functions import error_handler
 from .forms.auth import AuthForm, RegisterForm
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 @bp.route("/register", methods=["GET", "POST"])
-@error_handler
 def register():
-    form = RegisterForm(request.form)
-
-    if request.method == "POST" and form.validate():
+    form = RegisterForm()
+    if request.method == "POST":
+        form.process(request.form)
+        if not form.validate():
+            raise RequestException(form.errors, 400)
         email = request.form["email"]
         password = request.form["password"]
-        error = ""
+        errors = []
 
         if email == "":
-            error += "Username is required. "
+            errors.append("Username is required.")
         if password == "":
-            error += "Password is required. "
+            errors.append("Password is required.")
 
-        if error == "":
-            user_role = Role.query.filter_by(name="user").first()
+        if len(errors) == 0:
+            role = db.session.scalar(
+                db.select(Role).filter_by(name="user")
+            )
             new_user = User(
                 email=email,
                 password=generate_password_hash(password),
-                role_id=user_role.id,
+                first_name=request.form["first_name"],
+                last_name=request.form["last_name"],
+                city=request.form["city"],
+                postal_code=request.form["postal_code"],
+                address_line1=request.form["address_line1"],
+                address_line2=request.form["address_line2"],
+                phone=request.form["phone"],
             )
+            user_role = UserRole()
+            user_role.user = new_user
+            user_role.role = role
             db.session.add(new_user)
+            db.session.add(user_role)
             db.session.commit()
+            
+            flash("User successfully registered.", "success")
+
             return redirect(url_for("auth.login"))
         else:
-            raise RequestException(error, 400)
+            raise RequestException(" ".join(errors), 400)
+
     return render_template("auth/user_form.html", form=form, action="register")
 
 
@@ -55,6 +72,8 @@ def login():
         if session.get("redirected_from_url") is not None:
             redirect_to_url = session["redirected_from_url"]
 
+        flash("Successfully logged in", "success")
+
         return redirect(redirect_to_url)
 
     return render_template("auth/user_form.html", form=form, action="login")
@@ -65,9 +84,14 @@ def load_logged_in_user():
     user_id = session.get("user_id")
     if user_id is None:
         g.user = None
+        g.roles = None
     else:
-        g.user = db.get_or_404(User, user_id)
-        g.roles = g.user.roles
+        g.user = db.session.get(User, user_id)
+        if g.user is None:
+            session.clear()
+            g.roles = None
+        else:
+            g.roles = g.user.roles
 
 
 def login_required(view):
@@ -88,4 +112,7 @@ def logout():
     session.clear()
     g.user = None
     g.role = None
+
+    flash("Successfully logged out!", "success")
+
     return redirect(url_for("main.root"))

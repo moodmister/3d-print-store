@@ -9,14 +9,41 @@
       <ul class="list-group">
         {% for stl_model in order.stl_models %}
           <li class="list-group-item">
-            {% set estimated_time = stl_model.estimated_time / 3600 %}
-            {{ stl_model.estimated_cost / 100.0 }}--
-            {{ estimated_time |round(method='ceil')|int }}h
-            <a href="#model-viewer" class="view-model float-end">View model</a>
+            {% if stl_model.estimated_time and stl_model.estimated_cost %}
+              {% set estimated_time = stl_model.estimated_time / 3600 %}
+              ${{ stl_model.estimated_cost / 100.0 }} --
+              {{ estimated_time |round(method='ceil')|int }}h
+            {% else %}
+              {% if stl_model.errors is not none %}
+                {{ stl_model.errors }}
+              {% else %}
+                No estimates. <a href="{{ url_for('order.retry_slice', order_id=order.id) }}">Click here to refresh</a>
+              {% endif %}
+            {% endif %}
+            <a href="{{ url_for('media.static', filename=order.stl_models[0].file.full_path.split('/')[-1]) }}" class="view-model float-end" data-bs-toggle="modal" data-bs-target="#exampleModal">View model</a>
           </li>
         {% endfor %}
       </ul>
       {% endfor %}
     </li>
 </ul>
+<div class="modal fade" id="exampleModal">
+  <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="container d-flex flex-column align-items-center">
+          <div id="stl-viewer" style="height: 600px; width: 1100px"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

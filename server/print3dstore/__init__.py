@@ -14,7 +14,7 @@ from flask_admin.base import MenuLink
 from celery import Celery, Task
 
 from print3dstore.cli import load_fixtures_command
-from print3dstore.admin.admin_views import AccessControlView, AnalyticsView, MaterialView, OrderView, PaymentGatewayView, PrinterView, RoleView, SpoolView, StlModelView, UserView
+from print3dstore.admin.admin_views import AccessControlView, AnalyticsView, DashboardView, MaterialView, OrderView, PaymentGatewayView, PrinterView, RoleView, SpoolView, StlModelView, UserView
 from .models import Material, Order, PaymentGateway, Printer, Role, Spool, StlModel, User, db
 
 def create_app(test_config=None):
@@ -37,18 +37,18 @@ def create_app(test_config=None):
     app.config["FLASK_ADMIN_FLUID_LAYOUT"] = True
     app.config["FLASK_ADMIN_SWATCH"] = "morph"
 
-    admin = Admin(name=app.name, template_mode="bootstrap4", base_template="admin/custom_base.html")
+    admin = Admin(name=app.name, template_mode="bootstrap4", base_template="admin/custom_base.html", index_view=DashboardView())
     admin.menu().insert(0, MenuLink(name="Back to site", url="/"))
 
     admin.add_view(AnalyticsView("Analytics", endpoint="/analytics"))
     admin.add_view(MaterialView(Material, db.session, endpoint="materials"))
-    admin.add_view(PrinterView(Printer, db.session, endpoint="printers"))
     admin.add_view(SpoolView(Spool, db.session, endpoint="spools"))
     admin.add_view(OrderView(Order, db.session, endpoint="orders"))
     admin.add_view(StlModelView(StlModel, db.session, endpoint="stl-models"))
     admin.add_view(PaymentGatewayView(PaymentGateway, db.session, endpoint="payment-gateways"))
     admin.add_view(UserView(User, db.session, endpoint="users"))
     admin.add_view(RoleView(Role, db.session, endpoint="roles"))
+    admin.add_view(PrinterView(Printer, db.session, endpoint="printers"))
 
     admin.init_app(app)
 

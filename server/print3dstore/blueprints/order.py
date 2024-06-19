@@ -1,4 +1,4 @@
-from flask import Blueprint, current_app, g, make_response, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, flash, g, make_response, redirect, render_template, request, url_for
 
 import uuid
 
@@ -88,12 +88,13 @@ def order():
             file_name = stl_file.filename.replace(" ", "_")
 
             file_path = f"{current_app.root_path}/media/{mat}-{col}-{str(uuid.uuid4())}-{file_name}"
-            tasks.slice.delay(file_path, material.id)
             stl_file.save(file_path)
             new_file = File(full_path=file_path)
 
             db.session.add(new_file)
             files_added.append(new_file)
+
+            tasks.slice.delay(file_path, material.id)
 
         stl_models = []
         for file in files_added:
@@ -107,13 +108,30 @@ def order():
             user=g.user,
             stl_models=stl_models,
             payment_gateway=payment_gateway,
+            address_line1 = address_line1,
+            address_line2 = address_line2,
+            city = city,
+            postal_code = postal_code,
+            phone = phone,
         )
 
         db.session.add(order)
 
         db.session.commit()
 
+        flash("Order has been saved", "success")
+
         return redirect(url_for("main.root"))
     
     return render_template("order.html", form=form)
 
+
+@bp.route('/slice/retry/<order_id>', methods=('GET',))
+@error_handler
+@login_required
+def retry_slice(order_id: int):
+    order = db.get_or_404(Order, order_id)
+    for stl_model in order.stl_models:
+        tasks.slice.delay(stl_model.file.full_path, stl_model.material_id)
+    
+    return redirect(url_for('profile.orders'))

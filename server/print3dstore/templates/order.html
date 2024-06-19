@@ -28,17 +28,6 @@
           <div class="container d-flex flex-column align-items-center">
             <div id="stl-viewer" style="height: 600px; width: 1200px"></div>
           </div>
-
-          <script type="importmap">
-            {
-              "imports": {
-                "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
-                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
-              }
-            }
-          </script>
-          <script type="module" src="{{ url_for('static', filename='stlViewer.js') }}">
-          </script>
         {% endif %}
       {% endfor %}
       <button class="btn mt-4">Submit</button>

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, g, render_template
 
 from print3dstore.wrapper_functions import error_handler
 from print3dstore.errors import RequestException

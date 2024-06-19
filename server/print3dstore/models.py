@@ -52,6 +52,7 @@ class Order(db.Model):
         IN_PROGRESS = "in progress"
         SHIPPED = "shipped"
         FINISHED = "finished"
+        CANCELLED = "cancelled"
 
     __tablename__ = "order"
 
@@ -66,7 +67,13 @@ class Order(db.Model):
     estimated_cost: Mapped[int|None]
     real_cost: Mapped[int|None]
     shipping_cost: Mapped[int|None]
-    status: Mapped[str] = mapped_column(default=Status.QUEUED)
+    status: Mapped[str|None] = mapped_column(default=Status.QUEUED)
+
+    city: Mapped[str|None]
+    postal_code: Mapped[str|None]
+    address_line1: Mapped[str|None]
+    address_line2: Mapped[str|None]
+    phone: Mapped[str|None]
 
     payment_gateway_id: Mapped[int] = mapped_column(ForeignKey("payment_gateway.id"))
     payment_gateway: Mapped["PaymentGateway"] = relationship(foreign_keys=payment_gateway_id)
@@ -92,6 +99,8 @@ class StlModel(db.Model):
     estimated_time: Mapped[int|None]
     estimated_cost: Mapped[int|None]
 
+    errors: Mapped[str|None]
+
     def __repr__(self) -> str:
         return f"StlModel(id{self.file.full_path.split('/')[-1]})"
 
@@ -115,8 +124,8 @@ class User(db.Model):
     last_name: Mapped[Optional[str]] = mapped_column(String(50))
     email: Mapped[str] = mapped_column(unique=True)
     password: Mapped[str]  = mapped_column(String)
-    orders: Mapped[Optional[List["Order"]]] = relationship(back_populates="user")
-    roles: Mapped[List["Role"]] = relationship("UserRole", back_populates="user")
+    orders: Mapped[Optional[List["Order"]]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    roles: Mapped[List["Role"]] = relationship("UserRole", back_populates="user", cascade="all, delete-orphan")
 
     city: Mapped[str|None]
     postal_code: Mapped[str|None]
@@ -128,7 +137,8 @@ class User(db.Model):
     def has_permission(self, permission):
         for user_role in self.roles:
             permissions_json = json.loads(user_role.role.permissions)
-            return permissions_json.get(permission)
+            if permissions_json.get(permission):
+                return True
         return False
 
     def __repr__(self) -> str:
@@ -194,3 +204,6 @@ class UserRole(db.Model):
 
     user: Mapped["User"] = relationship("User", back_populates="roles")
     role: Mapped["Role"] = relationship("Role", back_populates="users")
+
+    def __repr__(self) -> str:
+        return self.role.name

@@ -33,6 +33,14 @@
             </li>
           {% endfor %}
         </ul>
+        <div class="legend">
+          Legend:
+          <div>
+            <span class="text-danger">Quantity under 20%</span> //
+            <span class="text-warning">Quantity under 50%</span> //
+            <span class="text-primary">Quantity over 50%</span>
+          </div>
+        </div>
       </div>
     </div>
     <div class="col">
@@ -45,7 +53,11 @@
             {% for stl_model in order.stl_models %}
               <li class="list-group-item d-flex justify-content-between align-items-center">
                 {{ stl_model.file.full_path.split('/')[-1] }}
+                {% if stl_model.estimated_cost %}
                 <span class="badge bg-primary rounded-pill">${{ stl_model.estimated_cost / 100.0 }}</span>
+                {% else %}
+                No estimate
+                {% endif %}
               </li>
             {% endfor %}
           </ul>
