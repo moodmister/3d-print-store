@@ -13,9 +13,6 @@ from print3dstore.errors import RequestException
 from print3dstore.blueprints.forms.order import OrderEditForm
 from print3dstore.blueprints.forms.user import UserForm
 
-# TODO Add form properties to the views and customize what's necessary
-# TODO Add example order and customize order view
-
 class DashboardView(AdminIndexView):
 
     def is_visible(self):
@@ -134,14 +131,22 @@ class UserView(AccessControlView):
 
 
 class OrderView(AccessControlView):
+    column_filters = ["user", "status"]
     can_create = False
     form = OrderEditForm
     column_list = [
         "user",
         "stl_models",
+        "estimated_cost",
+        "estimated_printing_time",
         "payment_gateway",
         "address",
-        "status"
+        "status",
+    ]
+    column_sortable_list = [
+        "user",
+        "payment_gateway",
+        "status",
     ]
     column_formatters = dict(
         user=lambda _v, _c, m, _p: m.user.email,
@@ -153,18 +158,18 @@ class OrderView(AccessControlView):
                 m.stl_models
             )
         ),
-        # estimated_cost=lambda _v, _c, m, _p: list(
-        #     map(
-        #         lambda model: model.estimated_cost / 100.0 if model.estimated_cost else 0,
-        #         m.stl_models
-        #     )
-        # ),
-        # estimated_printing_time=lambda _v, _c, m, _p: math.fsum(map(
-        #     lambda model: math.ceil(model.estimated_time / 3600) if model.estimated_time else 0,
-        #     m.stl_models
-        # )),
+        estimated_cost=lambda _v, _c, m, _p: list(
+            map(
+                lambda model: model.estimated_cost / 100.0 if model.estimated_cost else 0,
+                m.stl_models
+            )
+        ),
+        estimated_printing_time=lambda _v, _c, m, _p: math.fsum(map(
+            lambda model: math.ceil(model.estimated_time / 3600) if model.estimated_time else 0,
+            m.stl_models
+        )),
         payment_gateway=lambda _v, _c, m, _p: m.payment_gateway.type,
-        address=lambda _v, _c, m, _p: f"{m.user.city}, {m.user.address_line1}, {m.user.address_line2}"
+        address=lambda _v, _c, m, _p: f"{m.city}, {m.address_line1}, {m.address_line2}"
     )
 
     def on_form_prefill(self, form, id):
@@ -197,11 +202,11 @@ class OrderView(AccessControlView):
         form.payment_method.choices = form_payment_gateway_choices
         form.payment_method.process_data(order.payment_gateway_id)
 
-        form.city.data = order.user.city
-        form.postal_code.data = order.user.postal_code
-        form.address_line1.data = order.user.address_line1
-        form.address_line2.data = order.user.address_line2
-        form.phone.data = order.user.phone
+        form.city.data = order.city
+        form.postal_code.data = order.postal_code
+        form.address_line1.data = order.address_line1
+        form.address_line2.data = order.address_line2
+        form.phone.data = order.phone
 
         form.status.choices = [
             Order.Status.FINISHED,
@@ -232,11 +237,11 @@ class OrderView(AccessControlView):
             order.stl_models[0].material_id = request.form.get("material")
             order.stl_models[0].color = request.form.get("color")
 
-            order.user.city = request.form.get("city")
-            order.user.postal_code = request.form.get("postal_code")
-            order.user.phone = request.form.get("phone")
-            order.user.address_line1 = request.form.get("address_line1")
-            order.user.address_line2 = request.form.get("address_line2")
+            order.city = request.form.get("city")
+            order.postal_code = request.form.get("postal_code")
+            order.phone = request.form.get("phone")
+            order.address_line1 = request.form.get("address_line1")
+            order.address_line2 = request.form.get("address_line2")
             
             order.payment_gateway_id = request.form.get("payment_method")
             order.status = request.form.get("status")
