@@ -39,6 +39,7 @@ class AnalyticsView(BaseView):
 
 class AccessControlView(ModelView):
     form_base_class = SecureForm
+    can_set_page_size = True
 
     def is_accessible(self):
         if g.user is None:
@@ -135,6 +136,7 @@ class OrderView(AccessControlView):
     can_create = False
     form = OrderEditForm
     column_list = [
+        "order_id",
         "user",
         "stl_models",
         "estimated_cost",
@@ -143,12 +145,21 @@ class OrderView(AccessControlView):
         "address",
         "status",
     ]
-    column_sortable_list = [
-        "user",
-        "payment_gateway",
+    column_sortable_list = (
+        ("user", ("user.email")),
+        ("payment_gateway", ("payment_gateway.type")),
         "status",
-    ]
+    )
+    column_searchable_list = (
+        "id",
+        "user.email",
+        "city",
+        "address_line1",
+        "address_line2",
+        "status"
+    )
     column_formatters = dict(
+        order_id=lambda  _v, _c, m, _p: f"#{m.id}",
         user=lambda _v, _c, m, _p: m.user.email,
         stl_models=lambda _v, _c, m, _p: list(
             map(
