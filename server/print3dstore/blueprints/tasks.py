@@ -4,11 +4,12 @@ import subprocess
 import time
 
 from celery import shared_task, Task
-from celery.utils.log import logger
+from celery.utils.log import logging
 
 from celery.result import AsyncResult
 from flask import Blueprint, render_template
 from flask import request
+import logging
 
 from print3dstore.models import File, Material, Order, StlModel, db
 
@@ -16,6 +17,9 @@ from . import tasks
 
 bp = Blueprint("tasks", __name__, url_prefix="/tasks")
 
+logger = logging.getLogger(__name__)
+
+logger.setLevel(logging.DEBUG)
 
 @bp.get("/result/<id>")
 def result(id: str) -> dict[str, object]:
@@ -47,6 +51,12 @@ def slice(file_path: str, material_id: int) -> dict:
             db.select(File).filter_by(full_path=file_path)
         ).scalar_one_or_none()
 
+        if file is None:
+            raise Exception(f"Error with passed {file_path=} is not found.")
+        
+        logger.debug(f"{file.full_path} found.")
+
+        logger.info(f"Begin slicing file {file.full_path}...")
         run_command = subprocess.run(
             ["bash", "./print3dstore/slicer/prusa-slicer", "-g", file_path, "--load", "./print3dstore/slicer/general.ini", "--threads", "1"],
             capture_output=True
@@ -69,6 +79,8 @@ def slice(file_path: str, material_id: int) -> dict:
                 file.stl_model.order.status = Order.Status.CANCELLED
                 db.session.commit()
             raise Exception("Error with sliced file. Could not find result of slicing\n", f"Slicer error: {run_error}")
+
+        logger.info(f"Gcode exported to {gcode_path.group(1)}. Looking for estimates")
 
         gcode_file = open(gcode_path.group(1), "r")
         gcode_contents = gcode_file.read()

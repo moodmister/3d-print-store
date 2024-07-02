@@ -11,7 +11,7 @@
           <li class="list-group-item">
             {% if stl_model.estimated_time and stl_model.estimated_cost %}
               {% set estimated_time = stl_model.estimated_time / 3600 %}
-              ${{ stl_model.estimated_cost / 100.0 }} --
+              BGN {{ stl_model.estimated_cost / 100.0 }} lv. --
               {{ estimated_time |round(method='ceil')|int }}h
             {% else %}
               {% if stl_model.errors is not none %}

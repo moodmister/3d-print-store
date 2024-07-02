@@ -1,6 +1,7 @@
 import functools
 from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for, make_response
 from werkzeug.security import check_password_hash, generate_password_hash
+from psycopg2.errors import UniqueViolation
 from print3dstore.errors import RequestException
 from print3dstore.models import Role, User, UserRole, db
 from print3dstore.wrapper_functions import error_handler
@@ -9,6 +10,7 @@ from .forms.auth import AuthForm, RegisterForm
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 @bp.route("/register", methods=["GET", "POST"])
+@error_handler
 def register():
     form = RegisterForm()
     if request.method == "POST":
@@ -20,9 +22,17 @@ def register():
         errors = []
 
         if email == "":
-            errors.append("Username is required.")
+            errors.append("Email is required.")
         if password == "":
             errors.append("Password is required.")
+
+        user_email = db.session.execute(
+            db.select(User).where(User.email == email)
+        ).all()
+
+        if len(user_email) > 0:
+            flash("User with that email already exists", "danger")
+            return redirect(url_for("auth.register"))
 
         if len(errors) == 0:
             role = db.session.scalar(

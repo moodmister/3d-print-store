@@ -1,6 +1,7 @@
 import datetime
 import json
 import math
+import os
 from flask import app, flash, g, make_response, redirect, render_template, request, session
 from werkzeug.security import generate_password_hash
 from flask_admin import BaseView, expose, AdminIndexView
@@ -169,12 +170,12 @@ class OrderView(AccessControlView):
                 m.stl_models
             )
         ),
-        estimated_cost=lambda _v, _c, m, _p: list(
+        estimated_cost=lambda _v, _c, m, _p: f"""BGN {math.fsum(list(
             map(
                 lambda model: model.estimated_cost / 100.0 if model.estimated_cost else 0,
                 m.stl_models
             )
-        ),
+        ))} lv.""",
         estimated_printing_time=lambda _v, _c, m, _p: math.fsum(map(
             lambda model: math.ceil(model.estimated_time / 3600) if model.estimated_time else 0,
             m.stl_models
@@ -261,6 +262,21 @@ class OrderView(AccessControlView):
 
             return redirect("/admin/orders/")
         return super().edit_view()
+    
+    @expose("/delete", methods=["POST"])
+    def delete_view(self):
+        order = db.get_or_404(Order, request.form["id"])
+        files = [stl_model.file for stl_model in order.stl_models]
+        for file in files:
+            db.session.delete(file)
+        db.session.commit()
+        try:
+            for stl_model in order.stl_models:
+                os.remove(stl_model.file.full_path)
+                os.remove(stl_model.file.full_path.replace(".stl", ".gcode"))
+        except OSError as e:
+            pass
+        return super().delete_view()
 
 
 class MaterialView(AccessControlView):
@@ -320,7 +336,7 @@ class StlModelView(AccessControlView):
                     m.file.full_path.rfind("/") + 1:
                 ],
         material=lambda _v, _c, m, _p: m.material.name,
-        estimated_cost=lambda _v, _c, m, _p: m.estimated_cost / 100.0 if m.estimated_cost else 0,
+        estimated_cost=lambda _v, _c, m, _p: f"BGN {m.estimated_cost / 100.0} lv." if m.estimated_cost else 0,
         estimated_time=lambda _v, _c, m, _p: str(datetime.timedelta(seconds=m.estimated_time)) if m.estimated_time else 0
     )
 

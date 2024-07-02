@@ -94,8 +94,6 @@ def order():
             db.session.add(new_file)
             files_added.append(new_file)
 
-            tasks.slice.delay(file_path, material.id)
-
         stl_models = []
         for file in files_added:
             stl_model = StlModel(file=file, color=color)
@@ -118,6 +116,10 @@ def order():
         db.session.add(order)
 
         db.session.commit()
+
+        # create the tasks after committing to the database
+        for stl_model in stl_models:
+            tasks.slice.delay(stl_model.file.full_path, material.id)
 
         flash("Order has been saved", "success")
 
